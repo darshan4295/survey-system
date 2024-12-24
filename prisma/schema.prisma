@@ -1,0 +1,124 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          UserRole  @default(EMPLOYEE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  surveys       Survey[]  @relation("CreatedSurveys")
+  responses     Response[]
+  rewards       Reward[]
+  notifications EmailNotification[]
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+}
+
+model Survey {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  isAnonymous   Boolean   @default(false)
+  creatorId     String
+  creator       User      @relation("CreatedSurveys", fields: [creatorId], references: [id])
+  startDate     DateTime
+  endDate       DateTime
+  questions     Question[]
+  responses     Response[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  notifications EmailNotification[]
+}
+
+model Question {
+  id            String    @id @default(cuid())
+  surveyId      String
+  survey        Survey    @relation(fields: [surveyId], references: [id])
+  type          QuestionType
+  text          String
+  required      Boolean   @default(true)
+  options       Json?     // For multiple choice questions
+  order         Int
+  minLength     Int?      // For TEXT type
+  maxLength     Int?      // For TEXT type
+  dateRange     Json?     // For DATE type (min and max dates)
+  timeRange     Json?     // For TIME type (min and max times)
+  responses     Answer[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum QuestionType {
+  TEXT
+  RADIO
+  CHECKBOX
+  DATE
+  TIME
+  COMBO
+}
+
+model Response {
+  id            String    @id @default(cuid())
+  surveyId      String
+  survey        Survey    @relation(fields: [surveyId], references: [id])
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id])
+  answers       Answer[]
+  createdAt     DateTime  @default(now())
+  completed     Boolean   @default(false)
+  submittedAt   DateTime?
+}
+
+model Answer {
+  id            String    @id @default(cuid())
+  questionId    String
+  question      Question  @relation(fields: [questionId], references: [id])
+  responseId    String
+  response      Response  @relation(fields: [responseId], references: [id])
+  value         Json      // Store answer value based on question type
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model EmailNotification {
+  id        String   @id @default(cuid())
+  surveyId  String
+  survey    Survey   @relation(fields: [surveyId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  sent      Boolean  @default(false)
+  sentAt    DateTime?
+  opened    Boolean  @default(false)
+  openedAt  DateTime?
+  clicked   Boolean  @default(false)
+  clickedAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model Reward {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  points        Int
+  reason        String
+  surveyId      String?   // Optional link to the survey that generated the reward
+  createdAt     DateTime  @default(now())
+  status        RewardStatus @default(PENDING)
+}
+
+enum RewardStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
