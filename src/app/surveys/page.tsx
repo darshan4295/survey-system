@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from  "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -7,39 +7,82 @@ import { redirect } from "next/navigation";
 
 async function getSurveys() {
   const { userId } = await auth();
+  const user = await currentUser();
   
-  // If no user, redirect to sign in
-  if (!userId) {
+  if (!userId || !user) {
     redirect('/sign-in');
   }
 
-  const surveys = await prisma.survey.findMany({
-    where: {
-      OR: [
-        { creatorId: userId }, // Surveys created by user
-        { isAnonymous: true }  // Public surveys
-      ]
-    },
-    include: {
-      _count: {
-        select: { responses: true }
+  try {
+    // First, ensure the user exists in our database
+    await prisma.user.upsert({
+      where: { id: userId },
+      update: {
+        email: user.emailAddresses[0].emailAddress,
+        name: `${user.firstName} ${user.lastName}`.trim(),
       },
-      creator: {
-        select: {
-          name: true
+      create: {
+        id: userId,
+        email: user.emailAddresses[0].emailAddress,
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        role: 'EMPLOYEE',
+      },
+    });
+
+    // Get all surveys
+    const surveys = await prisma.survey.findMany({
+      where: {
+        OR: [
+          { creatorId: userId },
+          {
+            AND: [
+              { creatorId: { not: userId } },
+              {
+                NOT: {
+                  responses: {
+                    some: {
+                      userId: userId
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        endDate: {
+          gte: new Date()
         }
+      },
+      include: {
+        creator: {
+          select: {
+            name: true,
+            email: true
+          }
+        },
+        _count: {
+          select: { responses: true }
+        },
+        responses: {
+          where: {
+            userId: userId
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  });
-  
-  return surveys;
+    });
+
+    return { surveys, userId };
+  } catch (error) {
+    console.error('Error fetching surveys:', error);
+    return { surveys: [], userId };
+  }
 }
 
 export default async function SurveysPage() {
-  const surveys = await getSurveys();
+  const { surveys, userId } = await getSurveys();
 
   return (
     <div className="container mx-auto py-8">
@@ -77,18 +120,24 @@ export default async function SurveysPage() {
               <CardContent className="flex-1">
                 <div className="space-y-4">
                   <div className="text-sm text-muted-foreground">
-                    <p>Created by: {survey.creator.name}</p>
-                    <p>Responses: {survey._count.responses}</p>
-                    <p>Valid until: {new Date(survey.endDate).toLocaleDateString()}</p>
+                    <p>Created by: {survey.creator.name || survey.creator.email}</p>
+                    <p>Total Responses: {survey._count.responses}</p>
+                    <p>Expires: {new Date(survey.endDate).toLocaleDateString()}</p>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Link href={`/surveys/${survey.id}`}>
-                      <Button variant="outline">View Details</Button>
-                    </Link>
-                    {!survey.isAnonymous && (
-                      <Link href={`/surveys/${survey.id}/responses`}>
-                        <Button variant="outline">View Responses</Button>
+                    {survey.creatorId !== userId ? (
+                      <Link href={`/surveys/${survey.id}/fill`}>
+                        <Button>Take Survey</Button>
                       </Link>
+                    ) : (
+                      <>
+                        <Link href={`/surveys/${survey.id}`}>
+                          <Button variant="outline">View Details</Button>
+                        </Link>
+                        <Link href={`/surveys/${survey.id}/responses`}>
+                          <Button variant="outline">View Responses</Button>
+                        </Link>
+                      </>
                     )}
                   </div>
                 </div>
