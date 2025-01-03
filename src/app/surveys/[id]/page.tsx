@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DeleteSurvey } from "@/components/surveys/DeleteSurvey";
 import Link from "next/link";
 
 type PageProps = {
@@ -34,12 +35,12 @@ async function getSurvey(surveyId: string) {
   });
 
   if (!survey) notFound();
-  return survey;
+  return {survey,userId};
 }
 
 export default async function SurveyPage({ params }: PageProps) {
   const { id } = await params;
-  const survey = await getSurvey(id);
+  const {survey,userId} = await getSurvey(id);
 
   return (
     <div className="container mx-auto py-8 max-w-4xl">
@@ -51,9 +52,14 @@ export default async function SurveyPage({ params }: PageProps) {
               <CardDescription>{survey.description}</CardDescription>
             )}
           </div>
-          <Button asChild>
-            <Link href={`/surveys/${id}/fill`}>Take Survey</Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild>
+              <Link href={`/surveys/${id}/fill`}>Take Survey</Link>
+            </Button>
+            {survey.creatorId === userId && (
+              <DeleteSurvey surveyId={id} />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
