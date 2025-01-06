@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "start": "next start",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "vercel-build": "npx prisma db push && npx prisma generate && next build",
     "lint": "next lint --no-cache"
   },
   "dependencies": {
