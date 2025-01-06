@@ -26,7 +26,7 @@ type ResponsePageProps = {
 };
 
 // This is a Server Component
-const ResponsePage = async ({ params }: ResponsePageProps) => {
+const ResponsePage = async ({ params }: any) => {
   const { userId } = await auth();
   if (!userId) {
     redirect('/sign-in');

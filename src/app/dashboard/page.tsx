@@ -2,9 +2,15 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SurveyResults } from "@/components/dashboard/SurveyResults";
+import { redirect } from "next/navigation";
 
 async function getDashboardData() {
   const { userId } = await auth();
+  
+  // Redirect to sign-in if no userId is found
+  if (!userId) {
+    redirect("/sign-in");
+  }
 
   const surveys = await prisma.survey.findMany({
     where: {

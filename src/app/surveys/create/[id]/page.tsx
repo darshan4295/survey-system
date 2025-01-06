@@ -19,7 +19,7 @@ async function getSurvey(id: string) {
   return survey;
 }
 
-export default async function SurveyPage({ params }: { params: { id: string } }) {
+export default async function SurveyPage({ params }: any) {
   const { userId } = await auth();
   if (!userId) redirect('/sign-in');
 

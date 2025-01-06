@@ -6,11 +6,6 @@ import { Button } from "@/components/ui/button";
 import { DeleteSurvey } from "@/components/surveys/DeleteSurvey";
 import Link from "next/link";
 
-type PageProps = {
-  params: {
-    id: string;
-  };
-};
 
 async function getSurvey(surveyId: string) {
   const { userId } = await auth();
@@ -38,7 +33,7 @@ async function getSurvey(surveyId: string) {
   return {survey,userId};
 }
 
-export default async function SurveyPage({ params }: PageProps) {
+export default async function SurveyPage({ params }: any) {
   const { id } = await params;
   const {survey,userId} = await getSurvey(id);
 
@@ -87,13 +82,18 @@ export default async function SurveyPage({ params }: PageProps) {
                           Type: {question.type}
                           {question.required && ' (Required)'}
                         </p>
-                        {question.options && question.options.length > 0 && (
+                        {question.options && Array.isArray(question.options) && question.options.length > 0 && (
                           <div className="mt-2">
                             <p className="text-sm text-muted-foreground">Options:</p>
                             <ul className="list-disc list-inside ml-2">
-                              {question.options.map((option, i) => (
-                                <li key={i} className="text-sm">{option}</li>
-                              ))}
+                              {Array.isArray(question.options) &&
+                                question.options
+                                  .filter((option): option is string | number => typeof option === "string" || typeof option === "number")
+                                  .map((option, i) => (
+                                    <li key={i} className="text-sm">
+                                      {option}
+                                    </li>
+                                  ))}
                             </ul>
                           </div>
                         )}

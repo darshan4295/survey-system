@@ -10,7 +10,7 @@ type Params = {
 
 export async function DELETE(
   request: Request,
-  { params }: Params
+  { params }: any
 ) {
   try {
     const surveyId = (await params).id;

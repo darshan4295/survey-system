@@ -21,9 +21,7 @@ async function getSurvey(id: string) {
 
 export default async function SurveyResponsePage({ 
   params 
-}: { 
-  params: { id: string } 
-}) {
+}: any) {
   const { userId } = await auth();
   if (!userId) redirect('/sign-in');
 

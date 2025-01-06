@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import {
@@ -20,6 +21,7 @@ import {
 type Answer = {
   value: any;
   question: {
+    id: string;
     type: string;
     text: string;
   };
@@ -47,27 +49,29 @@ type Survey = {
 export function SurveyResults({ survey }: { survey: Survey }) {
   const processResponses = (question: any) => {
     const answers = survey.responses
-      .map((response) => 
+      .map((response) =>
         response.answers.find((a) => a.question.id === question.id)
       )
-      .filter(Boolean);
-
+      .filter(Boolean); // Removes undefined/null values
+  
     if (["RADIO", "CHECKBOX", "COMBO"].includes(question.type)) {
       const counts: { [key: string]: number } = {};
       answers.forEach((answer) => {
-        const value = answer.value;
-        counts[value] = (counts[value] || 0) + 1;
+        if (answer && answer.value !== undefined && answer.value !== null) {
+          const value = String(answer.value); // Convert value to string for object keys
+          counts[value] = (counts[value] || 0) + 1;
+        }
       });
-
+  
       return Object.entries(counts).map(([name, value]) => ({
         name,
         value,
       }));
     }
-
+  
     return [];
   };
-
+  
   return (
     <Card>
       <CardHeader>

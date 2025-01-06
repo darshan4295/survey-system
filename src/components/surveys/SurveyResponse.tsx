@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -35,7 +36,7 @@ type Survey = {
   id: string;
   title: string;
   description: string | null;
-  questions: Question[];
+  questions: any;
 };
 
 export function SurveyResponse({ survey }: { survey: Survey }) {
@@ -43,7 +44,7 @@ export function SurveyResponse({ survey }: { survey: Survey }) {
   const router = useRouter();
 
   // Create dynamic validation schema based on questions
-  const answerSchema = survey.questions.reduce((acc: any, question) => {
+  const answerSchema = survey.questions.reduce((acc: any, question:Question) => {
     if (question.required) {
       switch (question.type) {
         case 'TEXT':
@@ -192,7 +193,7 @@ export function SurveyResponse({ survey }: { survey: Survey }) {
       )}
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {survey.questions.map((question) => (
+        {survey.questions.map((question:any) => (
           <div key={question.id} className="space-y-2">
             <Label>
               {question.text}

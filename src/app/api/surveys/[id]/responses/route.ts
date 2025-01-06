@@ -1,10 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { InputJsonValue } from "@prisma/client/runtime/library";
 
 export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: Request, 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: any 
 ) {
   try {
     const { userId } = await auth();
@@ -21,7 +23,7 @@ export async function POST(
     // Check if user has already responded
     const existingResponse = await prisma.response.findFirst({
       where: {
-        surveyId: params.id,
+        surveyId: context.params.id,
         userId: userId
       }
     });
@@ -36,14 +38,14 @@ export async function POST(
     // Create response and answers
     const response = await prisma.response.create({
       data: {
-        surveyId: params.id,
+        surveyId: context.params.id,
         userId: userId,
         completed: true,
         submittedAt: new Date(),
         answers: {
           create: Object.entries(answers).map(([questionId, value]) => ({
-            questionId,
-            value: value,
+            question: { connect: { id: questionId } },
+            value:  value as InputJsonValue,
           })),
         },
       },
@@ -58,11 +60,12 @@ export async function POST(
         userId: userId,
         points: 10,
         reason: "Survey completion",
-        surveyId: params.id,
+        surveyId: context.params.id,
       },
     });
 
     return NextResponse.json({ success: true, data: response });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Response creation error:", error);
     return NextResponse.json(
