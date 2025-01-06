@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma db push && npx prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
+    "vercel-build": "prisma generate && npx prisma migrate deploy && next build",
     "lint": "next lint --no-cache"
   },
   "dependencies": {
