@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
@@ -19,11 +20,6 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-type ResponsePageProps = {
-  params: {
-    id: string;
-  };
-};
 
 // This is a Server Component
 const ResponsePage = async ({ params }: any) => {

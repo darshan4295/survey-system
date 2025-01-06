@@ -3,12 +3,6 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-type Params = {
-  params: {
-    id: string;
-  };
-};
-
 export async function DELETE(
   request: Request,
   { params }: any

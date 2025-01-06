@@ -11,7 +11,7 @@ export default function NotFound() {
           <h1 className="text-6xl font-bold">404</h1>
           <h2 className="text-2xl font-semibold">Page Not Found</h2>
           <p className="text-muted-foreground max-w-lg mx-auto px-4">
-            The page you're looking for doesn't exist or you might need to sign in.
+            The page you&apos;re looking for doesn&apos;t exist or you might need to sign in.
           </p>
           <div className="flex gap-4 justify-center">
             <SignInButton>
