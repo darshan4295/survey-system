@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,7 +72,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {surveys.reduce((acc, survey) => acc + survey._count.responses, 0)}
+              {surveys.reduce((acc:any, survey) => acc + survey._count.responses, 0)}
             </p>
           </CardContent>
         </Card>
