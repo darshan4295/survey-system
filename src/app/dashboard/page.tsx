@@ -72,7 +72,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {surveys.reduce((acc:any, survey) => acc + survey._count.responses, 0)}
+              {surveys.reduce((acc:any, survey: any) => acc + survey._count.responses, 0)}
             </p>
           </CardContent>
         </Card>
