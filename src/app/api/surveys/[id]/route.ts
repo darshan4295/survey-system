@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -44,7 +45,7 @@ export async function DELETE(
     }
 
     // Use transaction to delete all related data
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // Delete all answers related to the survey's responses
       await tx.answer.deleteMany({
         where: {
