@@ -33,7 +33,6 @@ async function validateRequest(request: Request) {
 
 export async function POST(req: Request) {
   try {
-    throw new Error('Please add CLERK_WEBHOOK_SECRET to .env file');
     const evt = await validateRequest(req);
     const eventType = evt.type;
 
