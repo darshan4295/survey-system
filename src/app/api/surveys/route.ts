@@ -2,7 +2,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendSurveyNotification } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -43,25 +42,6 @@ export async function POST(req: Request) {
         questions: true,
       },
     });
-
-    // Get all employees
-    const employees = await prisma.user.findMany({
-      where: {
-        role: 'EMPLOYEE',
-        id: {
-          not: userId // Don't send to creator
-        }
-      }
-    });
-
-    // Send notifications
-    for (const employee of employees) {
-      await sendSurveyNotification(
-        employee.email,
-        survey.title,
-        survey.id
-      );
-    }
 
     return NextResponse.json({ success: true, data: survey });
 
