@@ -1,16 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
   request: Request,
-  { params }: any
+  context: { params: { id: string } }
 ) {
   try {
-    const surveyId = (await params).id;
+    const surveyId = context.params.id;
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -21,7 +20,7 @@ export async function DELETE(
     // Check if survey exists and belongs to the user
     const survey = await prisma.survey.findUnique({
       where: { id: surveyId },
-      select: { creatorId: true }
+      select: { creatorId: true },
     });
 
     if (!survey) {
@@ -39,54 +38,62 @@ export async function DELETE(
     }
 
     // Use transaction to delete all related data
-    await prisma.$transaction(async (tx: any) => {
+    await prisma.$transaction(async (tx) => {
       // Delete all answers related to the survey's responses
       await tx.answer.deleteMany({
         where: {
           response: {
-            surveyId: surveyId
-          }
-        }
+            surveyId: surveyId,
+          },
+        },
       });
 
       // Delete all responses
       await tx.response.deleteMany({
         where: {
-          surveyId: surveyId
-        }
+          surveyId: surveyId,
+        },
       });
 
       // Delete all email notifications
       await tx.emailNotification.deleteMany({
         where: {
-          surveyId: surveyId
-        }
+          surveyId: surveyId,
+        },
       });
 
       // Delete all questions
       await tx.question.deleteMany({
         where: {
-          surveyId: surveyId
-        }
+          surveyId: surveyId,
+        },
       });
 
       // Finally, delete the survey
       await tx.survey.delete({
         where: {
-          id: surveyId
-        }
+          id: surveyId,
+        },
       });
     });
 
     return NextResponse.json({
       success: true,
-      message: "Survey deleted successfully"
+      message: "Survey deleted successfully",
     });
+  } catch (error: unknown) {
+    console.error("Error deleting survey:", error);
 
-  } catch (error) {
-    console.error('Error deleting survey:', error);
+    // Narrow down the error type
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+        ? error
+        : "Failed to delete survey";
+
     return NextResponse.json(
-      { success: false, error: "Failed to delete survey" },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
@@ -34,7 +33,13 @@ async function getSurvey(surveyId: string) {
   return {survey,userId};
 }
 
-export default async function SurveyPage({ params }: any) {
+type SurveyPageProps = {
+  params: {
+    id: string;
+  };
+};
+
+export default async function SurveyPage({ params }: SurveyPageProps) {
   const { id } = await params;
   const {survey,userId} = await getSurvey(id);
 

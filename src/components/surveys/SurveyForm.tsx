@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/use-toast";
 import { SurveyPreview } from "./SurveyPreview";
+import { toast } from "@/components/ui/use-toast";
+import SharePopup from "./SharePopup";
 
 import {
   Form,
@@ -234,6 +236,9 @@ function TimeQuestionSettings({
 }
 
 export function SurveyForm() {
+  const [showPopup, setShowPopup] = useState(false);
+  const [surveyID, setSurveyID] = useState("");
+  
   const form = useForm<SurveyFormData>({
     resolver: zodResolver(surveySchema),
     defaultValues: {
@@ -280,7 +285,8 @@ export function SurveyForm() {
       });
   
       const responseData = await response.json();
-  
+      setSurveyID(responseData.data.id)
+      console.log(surveyID)
       if (!response.ok) {
         throw new Error(responseData.error || 'Failed to create survey');
       }
@@ -291,7 +297,7 @@ export function SurveyForm() {
       });
   
       // Redirect to surveys list
-      window.location.href = '/surveys';
+      // window.location.href = '/surveys';
     } catch (error: any) {
       toast({
         title: "Error",
@@ -299,6 +305,14 @@ export function SurveyForm() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleCreateSurveyClick = () => {
+    form.handleSubmit(onSubmit)();
+    setShowPopup(true); // Open the popup when "Create Survey" is clicked
+  };
+  const handleClosePopup = () => {
+    setShowPopup(false);
   };
 
   return (
@@ -504,9 +518,10 @@ export function SurveyForm() {
             description={form.watch('description')}
             questions={form.watch('questions')}
           />
-          <Button type="submit">Create Survey</Button>
+          <Button type="submit" onClick={handleCreateSurveyClick}>Create Survey</Button>
         </div>
       </form>
+      {showPopup && <SharePopup surveyID={surveyID} data= {form.getValues()} onClose={handleClosePopup}/>}
     </Form>
   );
 }
