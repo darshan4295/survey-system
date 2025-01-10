@@ -5,8 +5,7 @@ import { InputJsonValue } from "@prisma/client/runtime/library";
 
 export async function POST(
   req: Request, 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  context: any 
+  context: { params: { id: string } } 
 ) {
   try {
     const { userId } = await auth();

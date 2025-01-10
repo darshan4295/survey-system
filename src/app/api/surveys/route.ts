@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -6,16 +5,25 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" }, 
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
 
     const data = await req.json();
 
+    // Validate required fields
+    if (!data.title || !data.startDate || !data.endDate || !Array.isArray(data.questions)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid data provided" },
+        { status: 400 }
+      );
+    }
+
+    // Create the survey
     const survey = await prisma.survey.create({
       data: {
         title: data.title,
@@ -25,7 +33,7 @@ export async function POST(req: Request) {
         endDate: new Date(data.endDate),
         creatorId: userId,
         questions: {
-          create: data.questions.map((q: any, index: number) => ({
+          create: data.questions.map((q: Record<string, unknown>, index: number) => ({
             text: q.text,
             type: q.type,
             required: q.required,
@@ -44,11 +52,17 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, data: survey });
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Survey creation error:", error);
+
+    // Narrow the error type for better error handling
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred while creating the survey";
+
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to create survey" },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

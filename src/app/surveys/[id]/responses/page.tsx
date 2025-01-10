@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
@@ -22,15 +21,16 @@ import { Button } from "@/components/ui/button";
 
 
 // This is a Server Component
-const ResponsePage = async ({ params }: any) => {
+const ResponsePage = async ({ params }: { params: { id: string } }) => {
   const { userId } = await auth();
+  const { id } = await params;
   if (!userId) {
     redirect('/sign-in');
   }
 
   const survey = await prisma.survey.findUnique({
     where: { 
-      id: params.id 
+      id: id
     },
     include: {
       questions: {
@@ -56,6 +56,7 @@ const ResponsePage = async ({ params }: any) => {
     }
   });
 
+
   if (!survey) {
     notFound();
   }
@@ -64,7 +65,7 @@ const ResponsePage = async ({ params }: any) => {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Survey Responses</h1>
-        <Link href={`/surveys/${params.id}`}>
+        <Link href={`/surveys/${id}`}>
           <Button variant="outline">Back to Survey</Button>
         </Link>
       </div>

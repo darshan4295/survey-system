@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -19,9 +18,6 @@ export async function GET() {
     const user = await prisma.user.findMany({
         where: {
           role: 'EMPLOYEE',
-          id: {
-            not: userId // Don't send to creator
-          }
         }
       });
 
@@ -35,10 +31,18 @@ export async function GET() {
     // Return the user data
     return NextResponse.json({ success: true, data: user });
 
-  } catch (error: any) {
-    console.error("Error fetching user:", error);
+  } catch (error: unknown) {
+    console.error("Failed to load Users:", error);
+
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+        ? error
+        : "Failed to load Users:";
+
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to fetch user" },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

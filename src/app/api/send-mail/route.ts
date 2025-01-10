@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
@@ -18,6 +17,10 @@ export async function POST(req: Request) {
       const data = await req.json();
       
       const { selectedUsers, title, surveyID } = data;
+
+      const errors = [];
+      if (!surveyID) errors.push({ field: "surveyID", message: "Survey ID is required" });
+      if (!title) errors.push({ field: "title", message: "Title cannot be empty" });
   
       if (!selectedUsers || !Array.isArray(selectedUsers) || selectedUsers.length === 0) {
         return NextResponse.json(
@@ -62,12 +65,21 @@ export async function POST(req: Request) {
         message: "Notifications sent successfully",
       });
   
-    } catch (error: any) {
-      console.error("Send notifications error:", error);
-      return NextResponse.json(
-        { success: false, error: error.message || "Failed to send notifications" },
-        { status: 500 }
-      );
-    }
+    } catch (error: unknown) {
+        console.error("Send notifications error:", error);
+    
+        // Narrow down the error type
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : typeof error === "string"
+            ? error
+            : "Failed to send notifications";
+    
+        return NextResponse.json(
+          { success: false, error: errorMessage },
+          { status: 500 }
+        );
+      }
   }
   

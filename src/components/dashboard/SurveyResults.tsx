@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import {
@@ -19,7 +18,7 @@ import {
 } from "recharts";
 
 type Answer = {
-  value: any;
+  value: string | number | null | undefined;
   question: {
     id: string;
     type: string;
@@ -45,9 +44,14 @@ type Survey = {
     text: string;
   }[];
 };
+type Question = {
+  id: string;
+  type: string;
+  text: string;
+};
 
 export function SurveyResults({ survey }: { survey: Survey }) {
-  const processResponses = (question: any) => {
+  const processResponses = (question:Question) => {
     const answers = survey.responses
       .map((response) =>
         response.answers.find((a) => a.question.id === question.id)

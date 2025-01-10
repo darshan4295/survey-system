@@ -132,7 +132,7 @@ const SharePopup: React.FC<SharePopupProps> = ({data, surveyID, onClose }) => {
 
   const addEmailInvite = () => {
     if (newEmail && !invitedEmails.includes(newEmail)) {
-      setInvitedEmails([...invitedEmails, newEmail]);
+      setInvitedEmails((prev) => [...prev, newEmail]);
       setNewEmail("");
     }
   };
@@ -292,7 +292,7 @@ const SharePopup: React.FC<SharePopupProps> = ({data, surveyID, onClose }) => {
         <div className="mt-4 flex justify-end space-x-4">
           <button
             onClick={sendSurveyEmails}
-            disabled={isSending || (!selectedUsers.length && !invitedEmails.length)}
+            disabled={isSending || (selectedUsers.length === 0 && invitedEmails.length === 0)}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg disabled:bg-blue-300"
           >
             {isSending ? 'Sending...' : 'Send Survey'}
